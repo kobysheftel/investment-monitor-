@@ -712,7 +712,10 @@ theme: louder
 buttons: square / rounded / pill
 header: bigger / smaller / subtle
 body: compact / spacious
-desc-bg: #1e293b"></textarea>
+desc-bg: #1e293b
+title: My Monitor
+header-color: #f97316
+header-bg: #1e293b"></textarea>
           <div class="button-row">
             <button id="applyDirectives" class="secondary-btn">Apply directives</button>
             <button id="resetAreas" class="secondary-btn">Reset areas</button>
@@ -1269,6 +1272,13 @@ desc-bg: #1e293b"></textarea>
           }
         } else if (key === "desc-bg") {
           root.style.setProperty("--desc-bg", valueRaw.trim());
+        } else if (key === "title") {
+          const el = document.getElementById("titleLabel");
+          if (el) el.textContent = valueRaw.trim();
+        } else if (key === "header-color") {
+          root.style.setProperty("--header-text", valueRaw.trim());
+        } else if (key === "header-bg") {
+          root.style.setProperty("--header-bg", valueRaw.trim());
         }
       });
     }
