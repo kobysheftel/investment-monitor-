@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Investment Monitor Style Lab – Full Web</title>
+  <style>
+    :root {
+      --bg: #020308;
+      --body-text: #f9fafb;
+      --desc-bg: #0f172a;    /* description panel background — change via directive: desc-bg: #color */
+
+      --title-bg: #020308;
+      --title-text: #f9fafb;
+      --title-font-size: 18px;
+      --title-font-weight: 700;
+
+      --header-bg: #0f172a;
+      --header-text: #f97316;
+      --header-border: #333333;
+      --header-font-size: 13px;
+      --header-font-weight: 600;
+
+      --table-bg: #020308;
+      --row-main-bg: #020308;
+      --grid-color: #222222;
+      --row-alt-bg: #020617;
+      --selection-bg: #f97316;
+      --selection-text: #000000;
+      --table-border: #333333;
+
+      --body-font-size: 13px;
+      --body-font-weight: 400;
+
+      --bank-active-bg: #f97316;
+      --bank-active-text: #000000;
+      --bank-inactive-bg: #0f172a;
+      --bank-unavailable-text: #fca5a5;
+
+      --button-text: #e5e7eb;
+      --button-border: #4b5563;
+      --button-radius: 14px;
+      --button-hover-bg: #1f2937;
+      --button-font-size: 13px;
+      --button-font-weight: 500;
+
+      --all-normal-bg: #22c55e;
+      --all-normal-text: #000000;
+      --all-warning-bg: #facc15;
+      --all-warning-text: #111827;
+      --all-warning-border: #111827;
+      --all-disabled-bg: #374151;
+      --all-disabled-text: #9ca3af;
+      --all-disabled-border: #4b5563;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--body-text);
+    }
+
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #titleBar {
+      background: var(--title-bg);
+      color: var(--title-text);
+      padding: 5px 12px;
+      border-bottom: 1px solid var(--header-border);
+    }
+
+    #titleLabel {
+      margin: 0;
+      font-size: var(--title-font-size);
+      font-weight: var(--title-font-weight);
+      text-align: center;
+    }
+
+    /* ── Left description panel ── */
+    .style-desc {
+      flex: 0 0 185px;
+      max-width: 185px;
+      padding: 10px 0 10px;   /* room for the absolute buttons */
+    }
+
+    .desc-frame {
+      position: relative;
+      border: 1px solid var(--header-border);
+      border-radius: 10px;
+      padding: 10px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--body-text);
+      background: var(--desc-bg);
+    }
+
+    /* button row that sits ON the top border line */
+    .desc-top-ctrl {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--desc-bg);
+      padding: 0 6px;
+      display: flex;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    /* LTR button on the LEFT end of the bottom border */
+    .desc-bottom-ltr {
+      position: absolute;
+      bottom: -10px;
+      left: 12px;
+      background: var(--desc-bg);
+      padding: 0 4px;
+    }
+
+    /* RTL button on the RIGHT end of the bottom border */
+    .desc-bottom-rtl {
+      position: absolute;
+      bottom: -10px;
+      right: 12px;
+      background: var(--desc-bg);
+      padding: 0 4px;
+    }
+
+    .rail-btn {
+      padding: 1px 7px;
+      font-size: 11px;
+      border-radius: 4px;
+      border: 1px solid var(--button-border);
+      background: var(--bg);
+      color: var(--body-text);
+      cursor: pointer;
+      line-height: 1.4;
+    }
+
+    .rail-btn:hover  { background: var(--button-hover-bg); }
+    .rail-btn.active { background: var(--selection-bg); color: var(--selection-text); border-color: var(--selection-bg); }
+
+    .desc-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--header-text);
+      margin: 0;
+      text-align: center !important;
+      direction: ltr;
+    }
+
+    .desc-tagline {
+      font-style: italic;
+      opacity: 0.85;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .desc-body {
+      line-height: 1.5;
+      opacity: 0.8;
+      margin: 0;
+    }
+
+    .desc-mood {
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .desc-traits {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      opacity: 0.75;
+    }
+
+    .desc-traits li::before { content: "· "; }
+
+    /* ── Free-layout canvas ── */
+    .canvas {
+      position: relative;
+      flex: 1;
+      min-height: 560px;
+      overflow: auto;
+    }
+
+    .panel {
+      position: absolute;
+      background: var(--table-bg);
+      border: 1px solid var(--header-border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      resize: both;
+      overflow: auto;
+      min-width: 140px;
+      min-height: 80px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+      z-index: 1;
+    }
+
+    .panel.is-dragging { opacity: 0.88; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.55); }
+
+    .panel-header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 4px 8px;
+      cursor: move;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      user-select: none;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--header-border);
+      border-radius: 8px 8px 0 0;
+    }
+
+    .panel-body {
+      padding: 8px;
+      overflow: auto;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    /* extra top/bottom padding so desc border-buttons aren't clipped */
+    #panel-desc .panel-body { padding-top: 14px; padding-bottom: 14px; overflow: visible; }
+
+    #titleBar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    #resetLayout {
+      padding: 2px 9px;
+      font-size: 11px;
+      border-radius: 4px;
+      border: 1px solid var(--button-border);
+      background: transparent;
+      color: var(--title-text);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #resetLayout:hover { background: var(--button-hover-bg); }
+
+    .bank-buttons-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bank-btn,
+    .all-btn {
+      border-radius: var(--button-radius);
+      border: 1px solid var(--button-border);
+      background: var(--bank-inactive-bg);
+      color: var(--button-text);
+      padding: 4px 10px;
+      font-size: var(--button-font-size);
+      font-weight: var(--button-font-weight);
+      cursor: pointer;
+    }
+
+    .bank-btn:hover,
+    .all-btn:hover {
+      background: var(--button-hover-bg);
+    }
+
+    .bank-btn.active {
+      background: var(--bank-active-bg);
+      color: var(--bank-active-text);
+      border-color: var(--bank-active-bg);
+    }
+
+    .bank-btn.unavailable {
+      color: var(--bank-unavailable-text);
+    }
+
+    .all-btn.state-0 {
+      background: var(--all-disabled-bg);
+      border-color: var(--all-disabled-border);
+      color: var(--all-disabled-text);
+    }
+
+    .all-btn.state-1 {
+      background: var(--all-normal-bg);
+      border-color: var(--all-normal-bg);
+      color: var(--all-normal-text);
+    }
+
+    .all-btn.state-2 {
+      background: var(--all-warning-bg);
+      border-color: var(--all-warning-border);
+      color: var(--all-warning-text);
+    }
+
+    .table-wrapper {
+      background: var(--table-bg);
+      border: 1px solid var(--table-border);
+      border-radius: 6px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      width: fit-content;
+    }
+
+    #accountsTable {
+      width: auto;
+      border-collapse: collapse;
+      font-size: var(--body-font-size);
+      table-layout: auto;
+    }
+
+    #accountsTable thead {
+      background: var(--header-bg);
+      color: var(--header-text);
+    }
+
+    #accountsTable thead th {
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--header-border);
+      text-align: left;
+      font-weight: var(--header-font-weight);
+      font-size: var(--header-font-size);
+      white-space: nowrap;
+    }
+
+    #accountsTable tbody tr:nth-child(odd) {
+      background: var(--row-main-bg);
+    }
+
+    #accountsTable tbody tr:nth-child(even) {
+      background: var(--row-alt-bg);
+    }
+
+    #accountsTable tbody td {
+      padding: 2px 8px;
+      border-bottom: 1px solid var(--grid-color);
+      white-space: nowrap;
+    }
+
+    #accountsTable tbody tr.selected {
+      background: var(--selection-bg);
+      color: var(--selection-text);
+    }
+
+    /* יישור לימין לעמודות מספריות */
+    #accountsTable tbody td:nth-child(4),
+    #accountsTable tbody td:nth-child(5) {
+      text-align: right;
+    }
+
+    .styles-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .change-style-hint {
+      font-size: 10px;
+      opacity: 0.45;
+      white-space: nowrap;
+      letter-spacing: 0.03em;
+    }
+
+    #prevStyle,
+    #nextStyle {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--button-border);
+      background: transparent;
+      color: var(--body-text);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    #prevStyle:hover,
+    #nextStyle:hover {
+      background: var(--button-hover-bg);
+    }
+
+    .style-buttons {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .style-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      border: 1px solid var(--button-border);
+      background: transparent;
+      color: var(--body-text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .style-btn.active {
+      background: var(--selection-bg);
+      color: var(--selection-text);
+    }
+
+    /* experiment panel */
+    .experiment-panel {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--header-border);
+      background: rgba(15, 23, 42, 0.4);
+      font-size: 12px;
+    }
+
+    .experiment-title {
+      margin: 0 0 2px;
+      font-weight: 600;
+    }
+
+    .experiment-notes {
+      width: 100%;
+      min-height: 54px;
+      resize: vertical;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--header-border);
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--body-text);
+      direction: rtl;
+      text-align: right;
+    }
+
+    .experiment-buttons {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .settings {
+      display: contents; /* settings content lives directly in panel-body */
+    }
+
+    .settings h2 {
+      margin: 0 0 2px;
+      font-size: 14px;
+    }
+
+    .settings h3 {
+      margin: 4px 0 2px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.7;
+    }
+
+    .settings p {
+      margin: 0 0 2px;
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .info-box {
+      border-radius: 4px;
+      border: 1px solid var(--header-border);
+      padding: 6px 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .areas-grid {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 4px 8px;
+      align-items: center;
+    }
+
+    .area-label {
+      font-weight: 500;
+    }
+
+    .area-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .area-controls input[type="color"] {
+      width: 36px;
+      height: 20px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .area-controls input[type="number"] {
+      width: 52px;
+      padding: 2px 4px;
+      font-size: 12px;
+    }
+
+    .area-controls label {
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 48px;
+      resize: vertical;
+      font-family: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono", monospace;
+      font-size: 11px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--header-border);
+      background: rgba(15, 23, 42, 0.4);
+      color: var(--body-text);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .secondary-btn {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--button-border);
+      background: transparent;
+      color: var(--body-text);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .secondary-btn:hover {
+      background: var(--button-hover-bg);
+    }
+
+    /* style-desc outer no longer needs its own sizing */
+    .style-desc { display: contents; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header id="titleBar">
+      <h1 id="titleLabel">Style 5: High-Contrast Pro</h1>
+      <button id="resetLayout" title="Reset panel layout">↺ Reset</button>
+    </header>
+
+    <main class="canvas" id="canvas">
+
+      <!-- ── Panel: Style Description ── -->
+      <div class="panel" id="panel-desc">
+        <div class="panel-header"><span>Style Description</span></div>
+        <div class="panel-body">
+          <div class="desc-frame" id="styleDesc">
+            <div class="desc-top-ctrl">
+              <button id="translateBtn" class="rail-btn">Translate</button>
+            </div>
+            <p class="desc-name"    id="descName"></p>
+            <p class="desc-tagline" id="descTagline"></p>
+            <p class="desc-body"    id="descBody"></p>
+            <p class="desc-mood"    id="descMood"></p>
+            <ul class="desc-traits" id="descTraits"></ul>
+            <div class="desc-bottom-ltr">
+              <button id="dirLtrBtn" class="rail-btn">LTR</button>
+            </div>
+            <div class="desc-bottom-rtl">
+              <button id="dirRtlBtn" class="rail-btn active">RTL</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel: Financial Monitor ── -->
+      <div class="panel" id="panel-monitor">
+        <div class="panel-header"><span>Financial Monitor</span></div>
+        <div class="panel-body">
+          <div class="bank-buttons-row">
+            <button class="bank-btn" data-bank="Leumi">Leumi</button>
+            <button class="bank-btn" data-bank="Discount">Discount</button>
+            <button class="bank-btn" data-bank="Morgan">Morgan</button>
+            <button class="bank-btn" data-bank="JB">JB</button>
+            <button id="allButton" class="all-btn" data-state="1">ALL</button>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="accountsTable">
+              <thead>
+                <tr id="tableHeaderRow"></tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="styles-bar">
+            <span class="change-style-hint">change style →</span>
+            <button id="prevStyle">◀</button>
+            <div class="style-buttons" id="styleButtons"></div>
+            <button id="nextStyle">▶</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel: Session Notes ── -->
+      <div class="panel" id="panel-notes">
+        <div class="panel-header"><span>Session Notes</span></div>
+        <div class="panel-body">
+          <div class="experiment-panel">
+            <p class="experiment-title">הערות על הסגנון:</p>
+            <textarea id="experimentNotes"
+                      class="experiment-notes"
+                      placeholder="מה עבד טוב, מה פחות..."></textarea>
+            <div class="experiment-buttons">
+              <button id="copyExperiment" class="secondary-btn">העתקה ל־Clipboard</button>
+              <button id="mailExperiment" class="secondary-btn">שלח במייל</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel: Style Lab ── -->
+      <div class="panel" id="panel-lab">
+        <div class="panel-header"><span>Style Lab</span></div>
+        <div class="panel-body">
+          <div class="info-box">
+            <strong>How to use</strong><br>
+            1. Pick a base style (1–10) with the number keys below the table.<br>
+            2. <strong>Areas</strong> — tweak colors, font size, and bold for each zone (Title / Header / Body / Buttons). Changes layer on top of the chosen style.<br>
+            3. <strong>Directives</strong> — type a rule and hit Apply. Examples:<br>
+            &nbsp;· <code>buttons: pill</code> / <code>square</code> / <code>rounded</code><br>
+            &nbsp;· <code>theme: calmer</code> / <code>louder</code><br>
+            &nbsp;· <code>header: subtle</code> / <code>bigger</code><br>
+            &nbsp;· <code>body: compact</code> / <code>spacious</code><br>
+            &nbsp;· <code>desc-bg: #1e293b</code> — description panel color<br>
+            4. <strong>Export</strong> — saves the full config as JSON.
+          </div>
+
+          <h3>Areas</h3>
+          <div class="areas-grid">
+            <div class="area-label">Title</div>
+            <div class="area-controls" data-area="title">
+              <label>BG <input type="color" class="area-bg" /></label>
+              <label>Text <input type="color" class="area-text" /></label>
+              <label>Size <input type="number" class="area-size" min="8" max="32" /></label>
+              <label><input type="checkbox" class="area-bold" /> Bold</label>
+            </div>
+
+            <div class="area-label">Header</div>
+            <div class="area-controls" data-area="header">
+              <label>BG <input type="color" class="area-bg" /></label>
+              <label>Text <input type="color" class="area-text" /></label>
+              <label>Size <input type="number" class="area-size" min="8" max="20" /></label>
+              <label><input type="checkbox" class="area-bold" /> Bold</label>
+            </div>
+
+            <div class="area-label">Body</div>
+            <div class="area-controls" data-area="body">
+              <label>Odd <input type="color" class="area-bg-main" /></label>
+              <label>Even <input type="color" class="area-bg-alt" /></label>
+              <label>Text <input type="color" class="area-text" /></label>
+              <label>Size <input type="number" class="area-size" min="8" max="20" /></label>
+              <label><input type="checkbox" class="area-bold" /> Bold</label>
+            </div>
+
+            <div class="area-label">Buttons</div>
+            <div class="area-controls" data-area="buttons">
+              <label>BG <input type="color" class="area-bg" /></label>
+              <label>Text <input type="color" class="area-text" /></label>
+              <label>Border <input type="color" class="area-border" /></label>
+              <label>Radius <input type="number" class="area-radius" min="0" max="999" style="width:44px" /></label>
+              <label>Size <input type="number" class="area-size" min="8" max="20" /></label>
+              <label><input type="checkbox" class="area-bold" /> Bold</label>
+            </div>
+          </div>
+
+          <h3>Directives</h3>
+          <textarea id="directivesInput" placeholder="Examples:
+theme: calmer
+theme: louder
+buttons: square / rounded / pill
+header: bigger / smaller / subtle
+body: compact / spacious
+desc-bg: #1e293b"></textarea>
+          <div class="button-row">
+            <button id="applyDirectives" class="secondary-btn">Apply directives</button>
+            <button id="resetAreas" class="secondary-btn">Reset areas</button>
+          </div>
+
+          <h3>Export JSON</h3>
+          <div class="button-row">
+            <button id="exportJsonBtn" class="secondary-btn">Export current config</button>
+          </div>
+          <textarea id="exportOutput" placeholder="Exported JSON will appear here..." readonly></textarea>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const HEADERS = ["Account", "Bank", "Name", "Nominal", "IS ILS"];
+
+    const ACCOUNTS = [
+      ["123-45678", "Leumi",   "General Investments", "250,000", "250,000"],
+      ["123-98765", "Leumi",   "USD Deposit",         "50,000",  "180,000"],
+      ["987-11111", "Leumi",   "IRA Account",         "· · ·",   "· · ·"],
+      ["987-22222", "Leumi",   "Pension Fund",        "· · ·",   "· · ·"],
+      ["555-33333", "Discount","Securities",          "75,000",  "75,000"],
+      ["555-44444", "Discount","NIS Deposit",         "20,000",  "20,000"],
+      ["777-11111", "Morgan",  "USD Portfolio",       "120,000", "432,000"],
+      ["777-22222", "Morgan",  "Options Account",     "· · ·",   "· · ·"],
+      ["999-11111", "JB",      "JB Main",             "60,000",  "216,000"],
+      ["999-22222", "JB",      "JB Savings",          "15,000",  "54,000"],
+    ];
+
+    const STYLE_PRESETS = {
+      1: { name: "Classic Minimalist", vars: { "--bg":"#F5F5F7","--body-text":"#111111","--title-bg":"#F5F5F7","--title-text":"#111111","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"#F0F0F0","--header-text":"#333333","--header-border":"#DDDDDD","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"#FFFFFF","--row-main-bg":"#FFFFFF","--grid-color":"#E0E0E0","--row-alt-bg":"#F8F9FB","--selection-bg":"#E8F2FF","--selection-text":"#000000","--table-border":"#DDDDDD","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#0078D4","--bank-active-text":"#FFFFFF","--bank-inactive-bg":"#FFFFFF","--bank-unavailable-text":"#B91C1C","--button-text":"#111111","--button-border":"#CCCCCC","--button-radius":"14px","--button-hover-bg":"#F3F3F3","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#16A34A","--all-normal-text":"#FFFFFF","--all-warning-bg":"#FACC15","--all-warning-text":"#78350F","--all-warning-border":"#D97706","--all-disabled-bg":"#E5E7EB","--all-disabled-text":"#6B7280","--all-disabled-border":"#D1D5DB" } },
+      2: { name: "Flat Design", vars: { "--bg":"#F0F2F5","--body-text":"#222222","--title-bg":"#F0F2F5","--title-text":"#222222","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"#FFFFFF","--header-text":"#555555","--header-border":"#E2E4E7","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"#FFFFFF","--row-main-bg":"#FFFFFF","--grid-color":"#F0F2F5","--row-alt-bg":"#F8F9FB","--selection-bg":"#D0EBFF","--selection-text":"#111111","--table-border":"#E2E4E7","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#2563EB","--bank-active-text":"#FFFFFF","--bank-inactive-bg":"#FFFFFF","--bank-unavailable-text":"#DC2626","--button-text":"#333333","--button-border":"#E2E4E7","--button-radius":"999px","--button-hover-bg":"#F3F4F6","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#22C55E","--all-normal-text":"#FFFFFF","--all-warning-bg":"#F97316","--all-warning-text":"#FFFFFF","--all-warning-border":"#EA580C","--all-disabled-bg":"#E5E7EB","--all-disabled-text":"#9CA3AF","--all-disabled-border":"#D1D5DB" } },
+      3: { name: "Soft Neumorphic", vars: { "--bg":"#E3E8EF","--body-text":"#222222","--title-bg":"#E3E8EF","--title-text":"#222222","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"#E3E8EF","--header-text":"#3B4256","--header-border":"#D1D9E6","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"#E3E8EF","--row-main-bg":"#E3E8EF","--grid-color":"#D1D9E6","--row-alt-bg":"#DEE5F0","--selection-bg":"#C8D4EE","--selection-text":"#111111","--table-border":"#D1D9E6","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#3B82F6","--bank-active-text":"#FFFFFF","--bank-inactive-bg":"#E3E8EF","--bank-unavailable-text":"#B91C1C","--button-text":"#3B4256","--button-border":"#D1D9E6","--button-radius":"999px","--button-hover-bg":"#DDE3EF","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#22C55E","--all-normal-text":"#FFFFFF","--all-warning-bg":"#F97316","--all-warning-text":"#FFFFFF","--all-warning-border":"#EA580C","--all-disabled-bg":"#CBD5F5","--all-disabled-text":"#6B7280","--all-disabled-border":"#9CA3AF" } },
+      4: { name: "Glassmorphism", vars: { "--bg":"#050816","--body-text":"#E5E7EB","--title-bg":"#050816","--title-text":"#E5E7EB","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"rgba(15,23,42,0.86)","--header-text":"#BFDBFE","--header-border":"rgba(148,163,184,0.63)","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"rgba(15,23,42,0.71)","--row-main-bg":"rgba(15,23,42,0.71)","--grid-color":"rgba(148,163,184,0.63)","--row-alt-bg":"rgba(15,23,42,0.78)","--selection-bg":"rgba(59,130,246,0.71)","--selection-text":"#F9FAFB","--table-border":"rgba(148,163,184,0.63)","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"rgba(59,130,246,0.90)","--bank-active-text":"#F9FAFB","--bank-inactive-bg":"rgba(15,23,42,0.78)","--bank-unavailable-text":"#FCA5A5","--button-text":"#E5E7EB","--button-border":"rgba(148,163,184,0.63)","--button-radius":"999px","--button-hover-bg":"rgba(30,64,175,0.78)","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"rgba(34,197,94,0.90)","--all-normal-text":"#0F172A","--all-warning-bg":"rgba(250,204,21,0.90)","--all-warning-text":"#0F172A","--all-warning-border":"rgba(202,138,4,0.90)","--all-disabled-bg":"rgba(30,64,175,0.71)","--all-disabled-text":"#9CA3AF","--all-disabled-border":"rgba(148,163,184,0.63)" } },
+      5: { name: "High-Contrast Pro", vars: { "--bg":"#020308","--body-text":"#F9FAFB","--title-bg":"#020308","--title-text":"#F9FAFB","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"#0F172A","--header-text":"#F97316","--header-border":"#333333","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"#020308","--row-main-bg":"#020308","--grid-color":"#222222","--row-alt-bg":"#020617","--selection-bg":"#F97316","--selection-text":"#000000","--table-border":"#333333","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#F97316","--bank-active-text":"#000000","--bank-inactive-bg":"#0F172A","--bank-unavailable-text":"#FCA5A5","--button-text":"#E5E7EB","--button-border":"#4B5563","--button-radius":"14px","--button-hover-bg":"#1F2937","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#22C55E","--all-normal-text":"#000000","--all-warning-bg":"#FACC15","--all-warning-text":"#111827","--all-warning-border":"#111827","--all-disabled-bg":"#374151","--all-disabled-text":"#9CA3AF","--all-disabled-border":"#4B5563" } },
+      6: { name: "Soft Skeuomorphic", vars: { "--bg":"#DCD2C8","--body-text":"#2B2B2B","--title-bg":"#DCD2C8","--title-text":"#2B2B2B","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"#E6D8C8","--header-text":"#3E2723","--header-border":"#C2B59B","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"#F5EFE7","--row-main-bg":"#F5EFE7","--grid-color":"#C2B59B","--row-alt-bg":"#F0E4D7","--selection-bg":"#FFECB3","--selection-text":"#000000","--table-border":"#C2B59B","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#BCAAA4","--bank-active-text":"#3E2723","--bank-inactive-bg":"#E6D8C8","--bank-unavailable-text":"#B91C1C","--button-text":"#3E2723","--button-border":"#C2B59B","--button-radius":"6px","--button-hover-bg":"#D7CCC8","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#A5D6A7","--all-normal-text":"#1B5E20","--all-warning-bg":"#FFCC80","--all-warning-text":"#E65100","--all-warning-border":"#FB8C00","--all-disabled-bg":"#D7CCC8","--all-disabled-text":"#6D4C41","--all-disabled-border":"#BCAAA4" } },
+      7: { name: "Neo-Brutalism", vars: { "--bg":"#F9F5FF","--body-text":"#111827","--title-bg":"#F9F5FF","--title-text":"#111827","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"#FACC15","--header-text":"#111827","--header-border":"#111827","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"#FFFFFF","--row-main-bg":"#FFFFFF","--grid-color":"#111827","--row-alt-bg":"#E5E7EB","--selection-bg":"#FB7185","--selection-text":"#111827","--table-border":"#111827","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#22C55E","--bank-active-text":"#111827","--bank-inactive-bg":"#F97316","--bank-unavailable-text":"#B91C1C","--button-text":"#111827","--button-border":"#111827","--button-radius":"0px","--button-hover-bg":"#FDBA74","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#22C55E","--all-normal-text":"#111827","--all-warning-bg":"#FACC15","--all-warning-text":"#111827","--all-warning-border":"#111827","--all-disabled-bg":"#9CA3AF","--all-disabled-text":"#111827","--all-disabled-border":"#111827" } },
+      8: { name: "Maximalist", vars: { "--bg":"#0EA5E9","--body-text":"#F9FAFB","--title-bg":"#0EA5E9","--title-text":"#F9FAFB","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"rgba(15,23,42,0.94)","--header-text":"#F9FAFB","--header-border":"rgba(15,23,42,0.94)","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"rgba(15,23,42,0.82)","--row-main-bg":"rgba(15,23,42,0.82)","--grid-color":"rgba(248,250,252,0.55)","--row-alt-bg":"rgba(17,24,39,0.86)","--selection-bg":"#FACC15","--selection-text":"#111827","--table-border":"rgba(248,250,252,0.71)","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#22C55E","--bank-active-text":"#111827","--bank-inactive-bg":"#FACC15","--bank-unavailable-text":"#B91C1C","--button-text":"#111827","--button-border":"#FACC15","--button-radius":"999px","--button-hover-bg":"#FDE047","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#22C55E","--all-normal-text":"#111827","--all-warning-bg":"#F97316","--all-warning-text":"#111827","--all-warning-border":"#F97316","--all-disabled-bg":"#9CA3AF","--all-disabled-text":"#111827","--all-disabled-border":"#9CA3AF" } },
+      9: { name: "Soft Minimalism", vars: { "--bg":"#101827","--body-text":"#E5E7EB","--title-bg":"#101827","--title-text":"#E5E7EB","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"#111827","--header-text":"#93C5FD","--header-border":"#1F2937","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"#111827","--row-main-bg":"#111827","--grid-color":"#1F2937","--row-alt-bg":"#020617","--selection-bg":"#2563EB","--selection-text":"#F9FAFB","--table-border":"#1F2937","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#2563EB","--bank-active-text":"#F9FAFB","--bank-inactive-bg":"#020617","--bank-unavailable-text":"#FCA5A5","--button-text":"#E5E7EB","--button-border":"#1F2937","--button-radius":"999px","--button-hover-bg":"#111827","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#22C55E","--all-normal-text":"#F9FAFB","--all-warning-bg":"#FACC15","--all-warning-text":"#111827","--all-warning-border":"#EAB308","--all-disabled-bg":"#1F2937","--all-disabled-text":"#9CA3AF","--all-disabled-border":"#111827" } },
+      10: { name: "Card-Based Dashboard", vars: { "--bg":"#0B1120","--body-text":"#E5E7EB","--title-bg":"#0B1120","--title-text":"#E5E7EB","--title-font-size":"14px","--title-font-weight":"700","--header-bg":"#020617","--header-text":"#A5B4FC","--header-border":"#1E293B","--header-font-size":"13px","--header-font-weight":"700","--table-bg":"#020617","--row-main-bg":"#020617","--grid-color":"#1E293B","--row-alt-bg":"#020617","--selection-bg":"#38BDF8","--selection-text":"#0F172A","--table-border":"#1E293B","--body-font-size":"13px","--body-font-weight":"400","--bank-active-bg":"#38BDF8","--bank-active-text":"#0F172A","--bank-inactive-bg":"#020617","--bank-unavailable-text":"#FCA5A5","--button-text":"#E5E7EB","--button-border":"#1E293B","--button-radius":"6px","--button-hover-bg":"#111827","--button-font-size":"13px","--button-font-weight":"500","--all-normal-bg":"#22C55E","--all-normal-text":"#0F172A","--all-warning-bg":"#FACC15","--all-warning-text":"#0F172A","--all-warning-border":"#EAB308","--all-disabled-bg":"#1F2937","--all-disabled-text":"#9CA3AF","--all-disabled-border":"#111827" } },
+    };
+
+    let currentStyle = 5;
+    let allState = 1;
+    const bankStates = {
+      Leumi:    { active: true,  available: true },
+      Discount: { active: false, available: true },
+      Morgan:   { active: true,  available: true },
+      JB:       { active: false, available: false },
+    };
+
+    const areasConfig = {
+      title:   { bg: null, text: null, size: null, bold: null },
+      header:  { bg: null, text: null, size: null, bold: null },
+      body:    { bgMain: null, bgAlt: null, text: null, size: null, bold: null },
+      buttons: { bg: null, text: null, border: null, radius: null, size: null, bold: null },
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      buildTable();
+      buildStyleButtons();
+      hookButtons();
+      applyStyle(currentStyle);
+      initAreasControlsFromCSS();
+      renderBankStates();
+      renderAllButton();
+      updateStyleDesc();
+      initPanelLayout();
+    });
+
+    function buildTable() {
+      const headerRow = document.getElementById("tableHeaderRow");
+      const body = document.getElementById("tableBody");
+      headerRow.innerHTML = "";
+      body.innerHTML = "";
+
+      HEADERS.forEach((h) => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        headerRow.appendChild(th);
+      });
+
+      ACCOUNTS.forEach((row) => {
+        const tr = document.createElement("tr");
+        row.forEach((val) => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+    }
+
+    function buildStyleButtons() {
+      const container = document.getElementById("styleButtons");
+      container.innerHTML = "";
+      Object.keys(STYLE_PRESETS)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .forEach((i) => {
+          const btn = document.createElement("button");
+          btn.textContent = i;
+          btn.className = "style-btn";
+          btn.dataset.styleIndex = String(i);
+          btn.title = `${i}: ${STYLE_PRESETS[i].name}`;
+          btn.addEventListener("click", () => {
+            applyStyle(i);
+          });
+          container.appendChild(btn);
+        });
+    }
+
+    // ── Style descriptions ──────────────────────────────────────────────────
+    let descLang = "en";
+
+    const STYLE_DESCRIPTIONS = {
+      en: {
+        1:  { name:"Classic Minimalism",                    tagline:"The silence of design.",                      body:"The design almost disappears. Thin lines, restrained colors, generous spacing. The data stands alone at the center, like a single artwork on a quiet gallery wall.",                                                         mood:"Calm · disciplined · timeless",               traits:["Neutral palette","Hairline borders","Generous spacing","Restrained typography"] },
+        2:  { name:"Flat Design",                           tagline:"The geometry of clarity.",                    body:"No depth, no texture — only shapes and color. Information becomes a clear and immediate graphic language.",                                                                                                                mood:"Modern · efficient · optimistic",             traits:["Solid colors","Simple icons","Rectangular structures","High legibility"] },
+        3:  { name:"Soft Neumorphism",                      tagline:"Light sculpting the interface.",              body:"Elements appear carved into the surface. Everything is soft, diffused, almost tactile.",                                                                                                                                  mood:"Gentle · tactile · intimate",                 traits:["Subtle shadows","Monochrome palette","Rounded forms","Soft gradients"] },
+        4:  { name:"Glassmorphism",                         tagline:"Information floating in air.",                body:"Translucent blurred layers float above a colorful background. Depth and a futuristic atmosphere.",                                                                                                                        mood:"Elegant · luminous · magical",                traits:["Transparency","Backdrop blur","Glow","Layered depth"] },
+        5:  { name:"High Contrast Professional",            tagline:"Pure information density.",                   body:"Every pixel serves data. Colors signal meaning, tables are compact, structure is strict.",                                                                                                                                mood:"Intense · analytical · mission critical",     traits:["Dark background","Strong contrast","Compact tables","Rigid alignment"] },
+        6:  { name:"Skeuomorphic",                          tagline:"Digital objects pretending to be physical.",  body:"Buttons look like buttons, surfaces resemble real materials. A nostalgia for physical design.",                                                                                                                           mood:"Nostalgic · playful · heavy",                 traits:["Textures","Realistic shadows","Physical metaphors","Gradients"] },
+        7:  { name:"Neo-Brutalism",                         tagline:"Design that refuses politeness.",             body:"Sharp edges, loud colors, oversized typography. The skeleton of the grid is exposed.",                                                                                                                                    mood:"Rebellious · raw · confrontational",          traits:["Bold blocks","Thick outlines","Oversized type","Asymmetric layouts"] },
+        8:  { name:"Maximalism",                            tagline:"Design as celebration.",                      body:"Color, motion, typography — everything competes for attention. A visual celebration.",                                                                                                                                   mood:"Energetic · expressive · chaotic",            traits:["Layered visuals","Bright palettes","Animation","Complex composition"] },
+        9:  { name:"Soft Minimalism + Micro Interactions",  tagline:"Stillness with subtle life.",                 body:"A clean and simple appearance, yet full of subtle motion that responds to every interaction.",                                                                                                                            mood:"Calm · refined · intelligent",                traits:["Restrained layout","Subtle animations","Careful typography"] },
+        10: { name:"Card-Based Systems",                    tagline:"Architecture for information.",               body:"The screen becomes a city of cards — modularity, order, and the ability to reorganize at will.",                                                                                                                         mood:"Organized · flexible · modular",              traits:["Panel structure","Consistent spacing","Rounded corners","Responsive layout"] },
+      },
+      he: {
+        1:  { name:"מינימליזם קלאסי",           tagline:"שקט העיצוב.",                          body:"העיצוב כמעט נעלם. קווים דקים, צבעים מרוסנים, מרווחים נדיבים. הנתונים עומדים לבד במרכז, כמו יצירת אמנות בודדת על קיר גלריה שקט.",                      mood:"רגוע · ממושמע · נצחי",               traits:["פלטה ניטרלית","גבולות דקים","מרווח נדיב","טיפוגרפיה מרוסנת"] },
+        2:  { name:"עיצוב שטוח",               tagline:"גיאומטריה של בהירות.",                  body:"ללא עומק, ללא מרקם — רק צורות וצבע. המידע הופך לשפה גרפית ברורה ומיידית.",                                                                               mood:"מודרני · יעיל · אופטימי",             traits:["צבעים מוצקים","אייקונים פשוטים","מבנים מלבניים","קריאות גבוהה"] },
+        3:  { name:"ניאומורפיזם רך",            tagline:"אור שמפסל את הממשק.",                  body:"אלמנטים נראים מגולפים לתוך פני השטח. הכל רך, מפוזר, כמעט מוחשי.",                                                                                      mood:"עדין · מוחשי · אינטימי",             traits:["צללים עדינים","פלטה מונוכרומטית","צורות מעוגלות","שיפועים רכים"] },
+        4:  { name:"גלאסמורפיזם",              tagline:"מידע צף באוויר.",                       body:"שכבות מטושטשות ושקופות מרחפות מעל רקע צבעוני. עומק ואווירה עתידנית.",                                                                                   mood:"אלגנטי · מואר · קסום",               traits:["שקיפות","טשטוש רקע","זוהר","עומק בשכבות"] },
+        5:  { name:"מקצועי ניגוד גבוה",         tagline:"צפיפות מידע טהורה.",                   body:"כל פיקסל משרת נתונים. צבעים מסמנים משמעות, טבלאות קומפקטיות, מבנה קפדני.",                                                                              mood:"אינטנסיבי · אנליטי · קריטי למשימה",  traits:["רקע כהה","ניגוד חזק","טבלאות קומפקטיות","יישור קפדני"] },
+        6:  { name:"סקאומורפי",                tagline:"אובייקטים דיגיטליים מתחזים לפיזיים.",  body:"כפתורים נראים כמו כפתורים, פני השטח דומים לחומרים אמיתיים. נוסטלגיה לעיצוב פיזי.",                                                                      mood:"נוסטלגי · שובב · כבד",               traits:["מרקמים","צללים ריאליסטיים","מטאפורות פיזיות","שיפועים"] },
+        7:  { name:"ניאו-ברוטליזם",             tagline:"עיצוב שמסרב לנימוס.",                  body:"קצוות חדים, צבעים רועשים, טיפוגרפיה מוגזמת. שלד הגריד חשוף.",                                                                                           mood:"מורדני · גולמי · עימותי",            traits:["בלוקים מודגשים","מתאר עבה","כותרות ענק","פריסות א-סימטריות"] },
+        8:  { name:"מקסימליזם",                tagline:"עיצוב כחגיגה.",                         body:"צבע, תנועה, טיפוגרפיה — הכל מתחרה על תשומת הלב. חגיגה ויזואלית.",                                                                                       mood:"אנרגטי · אקספרסיבי · כאוטי",        traits:["ויזואלים מוערמים","פלטות עזות","אנימציה","קומפוזיציה מורכבת"] },
+        9:  { name:"מינימליזם רך + מיקרו-אינטראקציות", tagline:"דממה עם חיים עדינים.",        body:"מראה נקי ופשוט, אך מלא בתנועה עדינה שמגיבה לכל אינטראקציה.",                                                                                            mood:"רגוע · מעודן · חכם",                 traits:["פריסה מרוסנת","אנימציות עדינות","טיפוגרפיה מדויקת"] },
+        10: { name:"מערכות מבוססות כרטיסים",    tagline:"ארכיטקטורה של מידע.",                  body:"המסך הופך לעיר של כרטיסים — מודולריות, סדר, ויכולת לארגן מחדש בכל עת.",                                                                                mood:"מאורגן · גמיש · מודולרי",            traits:["מבנה פנלים","מרווח עקבי","פינות מעוגלות","פריסה רספונסיבית"] },
+      },
+    };
+
+    function updateStyleDesc() {
+      const d = STYLE_DESCRIPTIONS[descLang][currentStyle];
+      if (!d) return;
+      const panel = document.getElementById("styleDesc");
+      const isHe = descLang === "he";
+      const rtlActive = document.getElementById("dirRtlBtn").classList.contains("active");
+      panel.style.direction = rtlActive ? "rtl" : "ltr";
+      panel.style.textAlign = rtlActive ? "right" : "left";
+      document.getElementById("descName").textContent    = d.name;
+      document.getElementById("descTagline").textContent = d.tagline;
+      document.getElementById("descBody").textContent    = d.body;
+      document.getElementById("descMood").textContent    = "Mood: " + d.mood;
+      const ul = document.getElementById("descTraits");
+      ul.innerHTML = "";
+      d.traits.forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    }
+
+    function hookButtons() {
+      document.getElementById("prevStyle").addEventListener("click", () => {
+        const ids = Object.keys(STYLE_PRESETS).map(Number).sort((a, b) => a - b);
+        let pos = ids.indexOf(currentStyle);
+        currentStyle = ids[(pos - 1 + ids.length) % ids.length];
+        applyStyle(currentStyle);
+      });
+
+      document.getElementById("nextStyle").addEventListener("click", () => {
+        const ids = Object.keys(STYLE_PRESETS).map(Number).sort((a, b) => a - b);
+        let pos = ids.indexOf(currentStyle);
+        currentStyle = ids[(pos + 1) % ids.length];
+        applyStyle(currentStyle);
+      });
+
+      document.querySelectorAll(".bank-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const bank = btn.dataset.bank;
+          const s = bankStates[bank];
+          s.active = !s.active;
+          renderBankStates();
+        });
+      });
+
+      document.getElementById("allButton").addEventListener("click", () => {
+        allState = (allState + 1) % 3;
+        renderAllButton();
+      });
+
+      document.getElementById("applyDirectives").addEventListener("click", () => {
+        applyDirectives();
+      });
+
+      document.getElementById("resetAreas").addEventListener("click", () => {
+        areasConfig.title   = { bg: null, text: null, size: null, bold: null };
+        areasConfig.header  = { bg: null, text: null, size: null, bold: null };
+        areasConfig.body    = { bgMain: null, bgAlt: null, text: null, size: null, bold: null };
+        areasConfig.buttons = { bg: null, text: null, border: null, radius: null, size: null, bold: null };
+        applyStyle(currentStyle);
+        initAreasControlsFromCSS();
+      });
+
+      document.getElementById("exportJsonBtn").addEventListener("click", () => {
+        exportConfig();
+      });
+
+      // translate + direction buttons
+      document.getElementById("translateBtn").addEventListener("click", () => {
+        descLang = descLang === "en" ? "he" : "en";
+        const btn = document.getElementById("translateBtn");
+        btn.textContent = "Translate";
+        btn.classList.toggle("active", descLang === "he");
+        updateStyleDesc();
+      });
+
+      document.getElementById("dirLtrBtn").addEventListener("click", () => {
+        const frame = document.getElementById("styleDesc");
+        frame.style.direction = "ltr";
+        frame.style.textAlign = "left";
+        document.getElementById("dirLtrBtn").classList.add("active");
+        document.getElementById("dirRtlBtn").classList.remove("active");
+      });
+
+      document.getElementById("dirRtlBtn").addEventListener("click", () => {
+        const frame = document.getElementById("styleDesc");
+        frame.style.direction = "rtl";
+        frame.style.textAlign = "right";
+        document.getElementById("dirRtlBtn").classList.add("active");
+        document.getElementById("dirLtrBtn").classList.remove("active");
+      });
+
+      const copyBtn = document.getElementById("copyExperiment");
+      const mailBtn = document.getElementById("mailExperiment");
+      const notesEl = document.getElementById("experimentNotes");
+
+      if (copyBtn && notesEl && navigator.clipboard) {
+        copyBtn.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(notesEl.value || "");
+            alert("הטקסט הועתק ל־Clipboard.");
+          } catch (e) {
+            alert("לא הצלחתי להעתיק ל־Clipboard (ייתכן שהדפדפן חסם).");
+          }
+        });
+      }
+
+      if (mailBtn && notesEl) {
+        mailBtn.addEventListener("click", () => {
+          const preset = STYLE_PRESETS[currentStyle];
+          const changes = [
+            `Style: ${currentStyle} – ${preset ? preset.name : ""}`,
+            "",
+            "=== Notes ===",
+            notesEl.value || "(no notes)",
+            "",
+            "=== Current CSS vars ===",
+            ...Object.entries(preset ? preset.vars : {}).map(([k, v]) => `${k}: ${v}`),
+            "",
+            "=== Area overrides ===",
+            ...Object.entries(areasConfig).flatMap(([area, cfg]) =>
+              Object.entries(cfg)
+                .filter(([, v]) => v !== null)
+                .map(([k, v]) => `${area}.${k}: ${v}`)
+            ),
+          ].join("\n");
+
+          const subject = encodeURIComponent(`Style Lab – Style ${currentStyle}: ${preset ? preset.name : ""}`);
+          const body = encodeURIComponent(changes);
+          window.location.href = `mailto:kobysheftel@gmail.com?subject=${subject}&body=${body}`;
+        });
+      }
+
+      document.querySelectorAll(".area-controls").forEach((row) => {
+        const area = row.dataset.area;
+        const bgInput = row.querySelector(".area-bg");
+        const bgMainInput = row.querySelector(".area-bg-main");
+        const bgAltInput = row.querySelector(".area-bg-alt");
+        const textInput = row.querySelector(".area-text");
+        const sizeInput = row.querySelector(".area-size");
+        const boldInput = row.querySelector(".area-bold");
+
+        if (bgInput) {
+          bgInput.addEventListener("input", () => {
+            areasConfig[area].bg = bgInput.value;
+            applyAreaToCSS(area);
+          });
+        }
+        if (bgMainInput) {
+          bgMainInput.addEventListener("input", () => {
+            areasConfig[area].bgMain = bgMainInput.value;
+            applyAreaToCSS(area);
+          });
+        }
+        if (bgAltInput) {
+          bgAltInput.addEventListener("input", () => {
+            areasConfig[area].bgAlt = bgAltInput.value;
+            applyAreaToCSS(area);
+          });
+        }
+        if (textInput) {
+          textInput.addEventListener("input", () => {
+            areasConfig[area].text = textInput.value;
+            applyAreaToCSS(area);
+          });
+        }
+        const borderInput = row.querySelector(".area-border");
+        const radiusInput = row.querySelector(".area-radius");
+
+        if (borderInput) {
+          borderInput.addEventListener("input", () => {
+            areasConfig[area].border = borderInput.value;
+            applyAreaToCSS(area);
+          });
+        }
+        if (radiusInput) {
+          radiusInput.addEventListener("input", () => {
+            areasConfig[area].radius = radiusInput.value !== "" ? radiusInput.value + "px" : null;
+            applyAreaToCSS(area);
+          });
+        }
+        if (sizeInput) {
+          sizeInput.addEventListener("input", () => {
+            const v = sizeInput.value ? sizeInput.value + "px" : null;
+            areasConfig[area].size = v;
+            applyAreaToCSS(area);
+          });
+        }
+        if (boldInput) {
+          boldInput.addEventListener("change", () => {
+            areasConfig[area].bold = boldInput.checked;
+            applyAreaToCSS(area);
+          });
+        }
+      });
+    }
+
+    function applyStyle(idx) {
+      const root = document.documentElement;
+      currentStyle = idx;
+      const preset = STYLE_PRESETS[idx];
+      Object.entries(preset.vars).forEach(([k, v]) => root.style.setProperty(k, v));
+
+      document.getElementById("titleLabel").textContent = `Style ${idx}: ${preset.name}`;
+
+      document.querySelectorAll(".style-btn").forEach((btn) => {
+        const i = Number(btn.dataset.styleIndex);
+        btn.classList.toggle("active", i === idx);
+      });
+
+      Object.keys(areasConfig).forEach((k) => applyAreaToCSS(k));
+      initAreasControlsFromCSS();
+      updateStyleDesc();
+    }
+
+    function renderBankStates() {
+      document.querySelectorAll(".bank-btn").forEach((btn) => {
+        const bank = btn.dataset.bank;
+        const s = bankStates[bank];
+        btn.classList.toggle("active", s.active);
+        btn.classList.toggle("unavailable", !s.available && !s.active);
+      });
+    }
+
+    function renderAllButton() {
+      const btn = document.getElementById("allButton");
+      btn.classList.remove("state-0", "state-1", "state-2");
+      btn.classList.add(`state-${allState}`);
+    }
+
+    function cssColorToHex(cssColor) {
+      const ctx = document.createElement("canvas").getContext("2d");
+      ctx.fillStyle = cssColor;
+      const computed = ctx.fillStyle;
+      const m = computed.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (m) return computed;
+      return "#000000";
+    }
+
+    function initAreasControlsFromCSS() {
+      const rootStyles = getComputedStyle(document.documentElement);
+
+      const mapAreaToCSS = {
+        title: {
+          bg: "--title-bg",
+          text: "--title-text",
+          size: "--title-font-size",
+          weight: "--title-font-weight",
+        },
+        header: {
+          bg: "--header-bg",
+          text: "--header-text",
+          size: "--header-font-size",
+          weight: "--header-font-weight",
+        },
+        body: {
+          bgMain: "--row-main-bg",
+          bgAlt: "--row-alt-bg",
+          text: "--body-text",
+          size: "--body-font-size",
+          weight: "--body-font-weight",
+        },
+        buttons: {
+          bg: "--bank-inactive-bg",
+          text: "--button-text",
+          size: "--button-font-size",
+          weight: "--button-font-weight",
+        },
+      };
+
+      document.querySelectorAll(".area-controls").forEach((row) => {
+        const area = row.dataset.area;
+        const cfg = mapAreaToCSS[area];
+        const bgInput = row.querySelector(".area-bg");
+        const bgMainInput = row.querySelector(".area-bg-main");
+        const bgAltInput = row.querySelector(".area-bg-alt");
+        const textInput = row.querySelector(".area-text");
+        const sizeInput = row.querySelector(".area-size");
+        const boldInput = row.querySelector(".area-bold");
+
+        if (area === "body") {
+          const bgMain = rootStyles.getPropertyValue(cfg.bgMain).trim() || "#000000";
+          const bgAlt = rootStyles.getPropertyValue(cfg.bgAlt).trim() || "#000000";
+          const text = rootStyles.getPropertyValue(cfg.text).trim() || "#ffffff";
+          const size = rootStyles.getPropertyValue(cfg.size).trim() || "13px";
+          const weight = rootStyles.getPropertyValue(cfg.weight).trim() || "400";
+
+          if (bgMainInput) bgMainInput.value = cssColorToHex(bgMain);
+          if (bgAltInput) bgAltInput.value = cssColorToHex(bgAlt);
+          if (textInput) textInput.value = cssColorToHex(text);
+          if (sizeInput) sizeInput.value = parseInt(size, 10) || 13;
+          if (boldInput) boldInput.checked = Number(weight) >= 600;
+
+          areasConfig.body.bgMain = bgMainInput ? bgMainInput.value : null;
+          areasConfig.body.bgAlt  = bgAltInput ? bgAltInput.value : null;
+          areasConfig.body.text   = textInput ? textInput.value : null;
+          areasConfig.body.size   = sizeInput ? sizeInput.value + "px" : null;
+          areasConfig.body.bold   = boldInput ? boldInput.checked : null;
+        } else {
+          const bg = cfg.bg ? rootStyles.getPropertyValue(cfg.bg).trim() : "#000000";
+          const text = cfg.text ? rootStyles.getPropertyValue(cfg.text).trim() : "#ffffff";
+          const size = cfg.size ? rootStyles.getPropertyValue(cfg.size).trim() : "13px";
+          const weight = cfg.weight ? rootStyles.getPropertyValue(cfg.weight).trim() : "400";
+
+          if (bgInput) bgInput.value = cssColorToHex(bg);
+          if (textInput) textInput.value = cssColorToHex(text);
+          if (sizeInput) sizeInput.value = parseInt(size, 10) || 13;
+          if (boldInput) boldInput.checked = Number(weight) >= 600;
+
+          areasConfig[area].bg   = bgInput ? bgInput.value : null;
+          areasConfig[area].text = textInput ? textInput.value : null;
+          areasConfig[area].size = sizeInput ? sizeInput.value + "px" : null;
+          areasConfig[area].bold = boldInput ? boldInput.checked : null;
+
+          // extra controls for buttons area
+          const borderInput = row.querySelector(".area-border");
+          const radiusInput = row.querySelector(".area-radius");
+          if (borderInput) {
+            const brd = cfg.border ? rootStyles.getPropertyValue("--button-border").trim() : "#4b5563";
+            borderInput.value = cssColorToHex(brd);
+            areasConfig[area].border = borderInput.value;
+          }
+          if (radiusInput) {
+            const rad = rootStyles.getPropertyValue("--button-radius").trim() || "14px";
+            radiusInput.value = parseInt(rad, 10) || 14;
+            areasConfig[area].radius = rad;
+          }
+        }
+      });
+    }
+
+    function applyAreaToCSS(area) {
+      const root = document.documentElement;
+      const cfg = areasConfig[area];
+
+      if (area === "title") {
+        if (cfg.bg) root.style.setProperty("--title-bg", cfg.bg);
+        if (cfg.text) root.style.setProperty("--title-text", cfg.text);
+        if (cfg.size) root.style.setProperty("--title-font-size", cfg.size);
+        if (cfg.bold !== null) root.style.setProperty("--title-font-weight", cfg.bold ? "700" : "400");
+      } else if (area === "header") {
+        if (cfg.bg) root.style.setProperty("--header-bg", cfg.bg);
+        if (cfg.text) root.style.setProperty("--header-text", cfg.text);
+        if (cfg.size) root.style.setProperty("--header-font-size", cfg.size);
+        if (cfg.bold !== null) root.style.setProperty("--header-font-weight", cfg.bold ? "700" : "400");
+      } else if (area === "body") {
+        if (cfg.bgMain) root.style.setProperty("--row-main-bg", cfg.bgMain);
+        if (cfg.bgAlt)  root.style.setProperty("--row-alt-bg", cfg.bgAlt);
+        if (cfg.text)   root.style.setProperty("--body-text", cfg.text);
+        if (cfg.size)   root.style.setProperty("--body-font-size", cfg.size);
+        if (cfg.bold !== null) root.style.setProperty("--body-font-weight", cfg.bold ? "600" : "400");
+      } else if (area === "buttons") {
+        if (cfg.bg)     root.style.setProperty("--bank-inactive-bg", cfg.bg);
+        if (cfg.text)   root.style.setProperty("--button-text", cfg.text);
+        if (cfg.border) root.style.setProperty("--button-border", cfg.border);
+        if (cfg.radius) root.style.setProperty("--button-radius", cfg.radius);
+        if (cfg.size)   root.style.setProperty("--button-font-size", cfg.size);
+        if (cfg.bold !== null) root.style.setProperty("--button-font-weight", cfg.bold ? "700" : "500");
+      }
+    }
+
+    function applyDirectives() {
+      const text = document.getElementById("directivesInput").value;
+      const lines = text
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter((l) => l && !l.startsWith("#"));
+
+      const root = document.documentElement;
+
+      lines.forEach((line) => {
+        const [keyRaw, valueRaw] = line.split(":");
+        if (!valueRaw) return;
+        const key = keyRaw.trim().toLowerCase();
+        const value = valueRaw.trim().toLowerCase();
+
+        if (key === "buttons") {
+          if (value.includes("pill")) {
+            root.style.setProperty("--button-radius", "999px");
+          } else if (value.includes("rounded")) {
+            root.style.setProperty("--button-radius", "8px");
+          } else if (value.includes("square")) {
+            root.style.setProperty("--button-radius", "0px");
+          } else if (value.includes("subtle")) {
+            root.style.setProperty("--button-border", "#9CA3AF");
+          }
+        } else if (key === "theme") {
+          if (value.includes("calmer")) {
+            root.style.setProperty("--selection-bg", "rgba(148,163,184,0.5)");
+          } else if (value.includes("louder")) {
+            root.style.setProperty("--selection-bg", "#FB7185");
+          } else if (value.includes("high-contrast")) {
+            root.style.setProperty("--selection-bg", "#F97316");
+          }
+        } else if (key === "header") {
+          if (value.includes("bigger")) {
+            root.style.setProperty("--header-font-size", "15px");
+          } else if (value.includes("smaller")) {
+            root.style.setProperty("--header-font-size", "11px");
+          } else if (value.includes("subtle")) {
+            root.style.setProperty("--header-font-weight", "400");
+            root.style.setProperty("--header-text", "#9CA3AF");
+          }
+        } else if (key === "body") {
+          if (value.includes("compact")) {
+            document.querySelectorAll("#accountsTable tbody td").forEach((td) => {
+              td.style.padding = "2px 6px";
+            });
+          } else if (value.includes("spacious")) {
+            document.querySelectorAll("#accountsTable tbody td").forEach((td) => {
+              td.style.padding = "6px 10px";
+            });
+          }
+        } else if (key === "desc-bg") {
+          root.style.setProperty("--desc-bg", valueRaw.trim());
+        }
+      });
+    }
+
+    // ── Panel drag / resize / undo system ────────────────────────────────────
+    const INITIAL_LAYOUT = {
+      'panel-desc':    { left: 10,  top: 10,  width: 205, height: 360 },
+      'panel-monitor': { left: 225, top: 10,  width: 500, height: 280 },
+      'panel-notes':   { left: 225, top: 300, width: 500, height: 160 },
+      'panel-lab':     { left: 735, top: 10,  width: 320, height: 500 },
+    };
+
+    let undoStack = [];
+    let topZ = 10;
+
+    function getPanelState() {
+      const state = {};
+      document.querySelectorAll('.panel').forEach(p => {
+        state[p.id] = { left: p.offsetLeft, top: p.offsetTop,
+                        width: p.offsetWidth, height: p.offsetHeight };
+      });
+      return state;
+    }
+
+    function applyPanelState(state) {
+      Object.entries(state).forEach(([id, s]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.left   = s.left   + 'px';
+        el.style.top    = s.top    + 'px';
+        el.style.width  = s.width  + 'px';
+        el.style.height = s.height + 'px';
+      });
+    }
+
+    function saveUndoState() {
+      undoStack.push(getPanelState());
+      if (undoStack.length > 30) undoStack.shift();
+    }
+
+    function undoLastMove() {
+      if (!undoStack.length) return;
+      applyPanelState(undoStack.pop());
+    }
+
+    function resetLayout() {
+      saveUndoState();
+      applyPanelState(Object.fromEntries(
+        Object.entries(INITIAL_LAYOUT).map(([id, s]) => [id, { ...s }])
+      ));
+    }
+
+    function makeDraggable(panel) {
+      const header = panel.querySelector('.panel-header');
+      header.addEventListener('mousedown', e => {
+        if (e.target.tagName === 'BUTTON') return;
+        saveUndoState();
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = panel.offsetLeft, startTop = panel.offsetTop;
+        panel.classList.add('is-dragging');
+        panel.style.zIndex = ++topZ;
+        function onMove(ev) {
+          panel.style.left = (startLeft + ev.clientX - startX) + 'px';
+          panel.style.top  = (startTop  + ev.clientY - startY) + 'px';
+        }
+        function onUp() {
+          panel.classList.remove('is-dragging');
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+        e.preventDefault();
+      });
+    }
+
+    function initPanelLayout() {
+      applyPanelState(Object.fromEntries(
+        Object.entries(INITIAL_LAYOUT).map(([id, s]) => [id, { ...s }])
+      ));
+      document.querySelectorAll('.panel').forEach(makeDraggable);
+      const ro = new ResizeObserver(() => {
+        clearTimeout(ro._t);
+        ro._t = setTimeout(saveUndoState, 500);
+      });
+      document.querySelectorAll('.panel').forEach(p => ro.observe(p));
+    }
+
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        undoLastMove();
+      }
+    });
+
+    document.getElementById('resetLayout').addEventListener('click', resetLayout);
+
+    function exportConfig() {
+      const rootStyles = getComputedStyle(document.documentElement);
+      const varsToExport = [
+        "--bg",
+        "--body-text",
+        "--title-bg",
+        "--title-text",
+        "--title-font-size",
+        "--title-font-weight",
+        "--header-bg",
+        "--header-text",
+        "--header-border",
+        "--header-font-size",
+        "--header-font-weight",
+        "--table-bg",
+        "--row-main-bg",
+        "--grid-color",
+        "--row-alt-bg",
+        "--selection-bg",
+        "--selection-text",
+        "--table-border",
+        "--body-font-size",
+        "--body-font-weight",
+        "--bank-active-bg",
+        "--bank-active-text",
+        "--bank-inactive-bg",
+        "--bank-unavailable-text",
+        "--button-text",
+        "--button-border",
+        "--button-radius",
+        "--button-hover-bg",
+        "--button-font-size",
+        "--button-font-weight",
+        "--all-normal-bg",
+        "--all-normal-text",
+        "--all-warning-bg",
+        "--all-warning-text",
+        "--all-warning-border",
+        "--all-disabled-bg",
+        "--all-disabled-text",
+        "--all-disabled-border",
+      ];
+
+      const cssVars = {};
+      varsToExport.forEach((v) => {
+        cssVars[v] = rootStyles.getPropertyValue(v).trim();
+      });
+
+      const payload = {
+        styleIndex: currentStyle,
+        styleName: STYLE_PRESETS[currentStyle].name,
+        cssVars,
+        areas: areasConfig,
+      };
+
+      document.getElementById("exportOutput").value = JSON.stringify(payload, null, 2);
+    }
+  </script>
+</body>
+</html>
